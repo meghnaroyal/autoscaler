@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: loadgen-strong
+  namespace: ai-scaler
+spec:
+  restartPolicy: Never
+  containers:
+  - name: loadgen
+    image: busybox:1.36
+    command: ["/bin/sh", "-c"]
+    args:
+      - |
+        echo "Strong phased load started"
+
+        # 2 min medium
+        for i in $(seq 1 120); do
+          wget -q -O- "http://cpu-load-app:8000/work?iterations=4000000" >/dev/null &
+          sleep 1
+        done
+
+        # 2 min high
+        for i in $(seq 1 120); do
+          wget -q -O- "http://cpu-load-app:8000/work?iterations=8000000" >/dev/null &
+          wget -q -O- "http://cpu-load-app:8000/work?iterations=8000000" >/dev/null &
+          sleep 1
+        done
+
+        # 2 min cooldown
+        for i in $(seq 1 120); do
+          wget -q -O- "http://cpu-load-app:8000/work?iterations=1500000" >/dev/null &
+          sleep 1
+        done
+
+        wait
+        echo "Strong load completed"

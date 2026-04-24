@@ -1,0 +1,10 @@
+Model Comparison Summary
+================================
+Metric            GRU       LSTM
+--------------------------------
+RMSE          19.7157    19.9236
+MAE            9.1969     9.5208
+R2             0.9138     0.9119
+
+Best model by RMSE: GRU
+Best model by R²: GRU

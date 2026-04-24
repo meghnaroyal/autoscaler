@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: loadgen
+  namespace: ai-scaler
+spec:
+  restartPolicy: Never
+  containers:
+  - name: loadgen
+    image: busybox:1.36
+    command: ["/bin/sh", "-c"]
+    args:
+      - |
+        echo "Starting phased load..."
+        # Phase 1: low load (2 min)
+        for i in $(seq 1 24); do
+          wget -q -O- "http://cpu-load-app:8000/work?iterations=1000000" >/dev/null
+          sleep 5
+        done
+
+        # Phase 2: medium load (2 min)
+        for i in $(seq 1 24); do
+          wget -q -O- "http://cpu-load-app:8000/work?iterations=3000000" >/dev/null
+          sleep 2
+        done
+
+        # Phase 3: high load / spike (2 min)
+        for i in $(seq 1 60); do
+          wget -q -O- "http://cpu-load-app:8000/work?iterations=6000000" >/dev/null &
+          wget -q -O- "http://cpu-load-app:8000/work?iterations=6000000" >/dev/null &
+          sleep 2
+        done
+
+        # Phase 4: cooldown (2 min)
+        for i in $(seq 1 24); do
+          wget -q -O- "http://cpu-load-app:8000/work?iterations=1000000" >/dev/null
+          sleep 5
+        done
+
+        echo "Load test done."

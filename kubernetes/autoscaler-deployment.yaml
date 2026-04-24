@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-autoscaler
+  namespace: ai-scaler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ml-autoscaler
+  template:
+    metadata:
+      labels:
+        app: ml-autoscaler
+    spec:
+      serviceAccountName: autoscaler-sa
+      containers:
+      - name: autoscaler
+        image: ml-autoscaler:v1
+        imagePullPolicy: Never
+        env:
+        - name: COLLECTOR_URL
+          value: "http://cpu-collector:8000/metrics/cpu"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"

@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY microservice/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir kubernetes flask
+
+COPY models/ models/
+COPY autoscaler_controller.py .
+
+ENV PYTHONUNBUFFERED=1
+EXPOSE 5000
+
+CMD ["python", "-u", "autoscaler_controller.py"]

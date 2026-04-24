@@ -1,0 +1,4 @@
+LSTM Model Evaluation
+RMSE: 20.1712
+MAE : 9.8065
+R2  : 0.9097
