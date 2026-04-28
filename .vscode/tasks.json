@@ -1,0 +1,151 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "1 · Minikube: Start",
+      "type": "shell",
+      "command": "minikube start --driver=docker --cpus=4 --memory=8192 && minikube addons enable metrics-server",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "new" }
+    },
+    {
+      "label": "2 · Docker: Use Minikube registry",
+      "type": "shell",
+      "command": "eval $(minikube docker-env) && echo '✓ Docker now points at Minikube'",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "3 · Docker: Build cpu-collector",
+      "type": "shell",
+      "command": "eval $(minikube docker-env) && docker build -f Dockerfile.collector -t cpu-collector:v1 .",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "3 · Docker: Build ml-autoscaler",
+      "type": "shell",
+      "command": "eval $(minikube docker-env) && docker build -f Dockerfile.autoscaler -t ml-autoscaler:v1 .",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "3 · Docker: Build cpu-load-app",
+      "type": "shell",
+      "command": "eval $(minikube docker-env) && docker build -f kubernetes/Dockerfile -t cpu-load-app:v1 kubernetes/",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "3 · Docker: Build ALL images",
+      "dependsOn": [
+        "3 · Docker: Build cpu-collector",
+        "3 · Docker: Build ml-autoscaler",
+        "3 · Docker: Build cpu-load-app"
+      ],
+      "group": "build"
+    },
+    {
+      "label": "4 · kubectl: Create namespace",
+      "type": "shell",
+      "command": "kubectl create namespace ai-scaler --dry-run=client -o yaml | kubectl apply -f -",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "4 · kubectl: Apply RBAC",
+      "type": "shell",
+      "command": "kubectl apply -f kubernetes/autoscaler-rbac.yaml",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "4 · kubectl: Deploy collector",
+      "type": "shell",
+      "command": "kubectl apply -f kubernetes/collector.yaml",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "4 · kubectl: Deploy cpu-load-app",
+      "type": "shell",
+      "command": "kubectl apply -f kubernetes/cpu-load-app.yaml",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "4 · kubectl: Deploy autoscaler",
+      "type": "shell",
+      "command": "kubectl apply -f kubernetes/autoscaler-deployment.yaml",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "4 · kubectl: Deploy ALL",
+      "type": "shell",
+      "command": "kubectl apply -f kubernetes/autoscaler-rbac.yaml && kubectl apply -f kubernetes/collector.yaml && kubectl apply -f kubernetes/cpu-load-app.yaml && kubectl apply -f kubernetes/autoscaler-deployment.yaml",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "5 · kubectl: Watch pods",
+      "type": "shell",
+      "command": "kubectl get pods -n ai-scaler -w",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "new" }
+    },
+    {
+      "label": "6 · Port-forward: Autoscaler API (5000)",
+      "type": "shell",
+      "command": "kubectl port-forward -n ai-scaler deployment/ml-autoscaler 5000:5000",
+      "group": "test",
+      "isBackground": true,
+      "presentation": { "reveal": "always", "panel": "new" },
+      "problemMatcher": []
+    },
+    {
+      "label": "6 · Port-forward: CPU Collector (8000)",
+      "type": "shell",
+      "command": "kubectl port-forward -n ai-scaler svc/cpu-collector 8000:8000",
+      "group": "test",
+      "isBackground": true,
+      "presentation": { "reveal": "always", "panel": "new" },
+      "problemMatcher": []
+    },
+    {
+      "label": "7 · Load test: Standard (8 min)",
+      "type": "shell",
+      "command": "kubectl delete pod loadgen -n ai-scaler --ignore-not-found && kubectl apply -f kubernetes/loadgen.yaml",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "7 · Load test: Strong (6 min)",
+      "type": "shell",
+      "command": "kubectl delete pod loadgen-strong -n ai-scaler --ignore-not-found && kubectl apply -f kubernetes/loadgen-strong.yaml",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "8 · Logs: Autoscaler",
+      "type": "shell",
+      "command": "kubectl logs -f -n ai-scaler deployment/ml-autoscaler",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "new" }
+    },
+    {
+      "label": "8 · Logs: CPU Collector",
+      "type": "shell",
+      "command": "kubectl logs -f -n ai-scaler deployment/cpu-collector",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "new" }
+    },
+    {
+      "label": "9 · Cleanup: Delete all ai-scaler resources",
+      "type": "shell",
+      "command": "kubectl delete namespace ai-scaler",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    }
+  ]
+}

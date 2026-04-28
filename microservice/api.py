@@ -9,11 +9,11 @@ from datetime import datetime
 import asyncio
 import os
 
-from .kubelet_client import KubeletClient
-from .smoother import ExponentialMovingAverageSmoother
-from .storage import MetricsStorage
-from .scaler import CPUScaler
-from .predictor import CPUPredictor
+from kubelet_client import KubeletClient
+from smoother import ExponentialMovingAverageSmoother
+from storage import MetricsStorage
+from scaler import CPUScaler
+from predictor import CPUPredictor
 
 # Initialize FastAPI app
 app = FastAPI(

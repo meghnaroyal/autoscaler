@@ -67,7 +67,7 @@ class MLAutoscaler:
         self.v1 = client.AppsV1Api()
         self.namespace = "ai-scaler"
         self.deployment_name = "cpu-load-app"
-        self.collector_url = "http://cpu-collector:8000/metrics/cpu"
+        self.collector_url = os.environ.get("COLLECTOR_URL", "http://cpu-collector:8000/metrics/cpu")
         
         # Config
         self.history_size = 60
@@ -113,7 +113,7 @@ class MLAutoscaler:
             response = requests.get(self.collector_url, timeout=5)
             response.raise_for_status()
             data = response.json()
-            return data.get("current_cpu", 0.0)
+            return data.get("raw_cpu", data.get("current_cpu", 0.0))
         except Exception as e:
             print(f"❌ Error fetching CPU: {e}")
             return 0.0

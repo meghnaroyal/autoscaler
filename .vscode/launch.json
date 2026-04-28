@@ -1,0 +1,51 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Dashboard (port 8080)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/dashboard.py",
+      "console": "integratedTerminal",
+      "env": {
+        "AUTOSCALER_API_URL": "http://localhost:5000/api/metrics",
+        "DASHBOARD_PORT": "8080"
+      }
+    },
+    {
+      "name": "Autoscaler Controller (port 5000)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/autoscaler_controller.py",
+      "console": "integratedTerminal",
+      "env": {
+        "COLLECTOR_URL": "http://localhost:8000/metrics/cpu"
+      },
+      "justMyCode": false
+    },
+    {
+      "name": "CPU Collector Microservice (port 8000)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/microservice/main.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/microservice",
+      "env": {
+        "SIMULATE_MODE": "true",
+        "NAMESPACE": "ai-scaler"
+      },
+      "justMyCode": false
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack (Collector + Autoscaler + Dashboard)",
+      "configurations": [
+        "CPU Collector Microservice (port 8000)",
+        "Autoscaler Controller (port 5000)",
+        "Dashboard (port 8080)"
+      ],
+      "stopAll": true
+    }
+  ]
+}
