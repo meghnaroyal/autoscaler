@@ -1,2 +1,6 @@
 venv/
 .DS_Store
+nohup.out
+*.log
+__pycache__/
+*.pyc
