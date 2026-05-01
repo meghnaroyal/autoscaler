@@ -4,7 +4,7 @@ metadata:
   name: loadgen-strong
   namespace: ai-scaler
 spec:
-  restartPolicy: Never
+  restartPolicy: Always
   containers:
   - name: loadgen
     image: busybox:1.36

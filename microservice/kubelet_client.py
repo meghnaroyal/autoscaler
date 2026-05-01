@@ -74,8 +74,14 @@ class KubeletClient:
                 for container in item.get('containers', []):
                     cpu_str = container.get('usage', {}).get('cpu', '0')
                     
-                    # Parse CPU string (e.g., "50m" -> 50 millicores)
-                    if cpu_str.endswith('m'):
+                    # Parse CPU string (e.g., "50m" -> 50 millicores, "500n" -> nanocores, "2u" -> microcores)
+                    if cpu_str.endswith('n'):
+                        # nanocores: 1,000,000 nanocores = 1 millicore
+                        cpu_millicores = int(cpu_str[:-1]) / 1_000_000
+                    elif cpu_str.endswith('u'):
+                        # microcores: 1,000 microcores = 1 millicore
+                        cpu_millicores = int(cpu_str[:-1]) / 1_000
+                    elif cpu_str.endswith('m'):
                         cpu_millicores = int(cpu_str[:-1])
                     else:
                         cpu_millicores = int(float(cpu_str) * 1000)
