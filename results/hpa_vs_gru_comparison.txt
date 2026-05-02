@@ -1,0 +1,15 @@
+HPA vs GRU Autoscaler — Simulation Comparison
+==============================================================
+Dataset : Google Cluster Trace test set (656 time steps)
+Scale-up threshold  : CPU util > 50%
+Scale-down threshold: CPU util < 20%
+HPA scale-down stabilisation window: 60 steps
+
+Metric                                  HPA          GRU
+--------------------------------------------------------------
+Average Replicas                        3.0         3.11
+Total Replica-Steps                    1971         2043
+Scaling Events                            9            8
+Over-provisioned Steps                    3            5
+Under-provisioned Steps                   0            1
+Avg Scale-up Lag (steps)                0.0          0.7
