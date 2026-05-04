@@ -142,6 +142,15 @@ def main():
         help="Which autoscaler is active (gru or hpa)",
     )
     parser.add_argument(
+        "--run", type=int, default=None, metavar="N",
+        help=(
+            "Run number for multi-trial experiments (e.g. --run 1, --run 2, …). "
+            "When provided the output file is named "
+            "{scenario}_experiment_runN.csv instead of {scenario}_experiment.csv. "
+            "Run 3-5 trials to get statistically credible results."
+        ),
+    )
+    parser.add_argument(
         "--duration", type=int, default=DEFAULT_DURATION,
         help="How many seconds to collect data",
     )
@@ -160,12 +169,21 @@ def main():
     args = parser.parse_args()
 
     os.makedirs(RESULTS_DIR, exist_ok=True)
-    outfile  = os.path.join(RESULTS_DIR, f"{args.scenario}_experiment.csv")
+
+    if args.run is not None:
+        outfile = os.path.join(RESULTS_DIR, f"{args.scenario}_experiment_run{args.run}.csv")
+    else:
+        outfile = os.path.join(RESULTS_DIR, f"{args.scenario}_experiment.csv")
+
     selector = f"app={args.deployment}"
 
     print("=" * 60)
-    print(f"  Experiment Collector — scenario: {args.scenario.upper()}")
+    run_label = f" (run #{args.run})" if args.run is not None else ""
+    print(f"  Experiment Collector — {args.scenario.upper()}{run_label}")
     print("=" * 60)
+    print(f"  Scenario   : {args.scenario.upper()}")
+    if args.run is not None:
+        print(f"  Run        : #{args.run}")
     print(f"  Namespace  : {args.namespace}")
     print(f"  Deployment : {args.deployment}")
     print(f"  Duration   : {args.duration} s")

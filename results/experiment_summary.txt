@@ -1,0 +1,53 @@
+====================================================================
+  Experiment Results Summary — GRU Autoscaler vs Kubernetes HPA
+  Load pattern: k6 burst test  (kubernetes/k6-burst-test.js)
+  Statistical basis: 3 runs — values shown as mean ± std
+====================================================================
+
+  Workload stages:
+    t=  0-30 s  baseline        20 VUs
+    t= 30-35 s  spike-1 ramp   300 VUs
+    t= 35-95 s  spike-1 peak   300 VUs  ← key window
+    t= 95-100s  drop-1           5 VUs
+    t=100-160s  recovery        20 VUs  ← over-provisioning window
+    t=160-165s  spike-2 ramp   300 VUs
+    t=165-225s  spike-2 peak   300 VUs
+    t=225-230s  drop-2           5 VUs
+    t=230-260s  cooldown        20 VUs
+
+  Metric                                               GRU             HPA    Better
+  ----------------------------------------------------------------------------------
+  BASELINE
+  Replicas at baseline                                   1               1
+
+  SCALE-UP LAG  (seconds from spike start → first new replica)
+  [GRU predicts load in advance; HPA waits for CPU to rise]
+    Spike 1                                         20.0 s          55.0 s     GRU ✓
+    Spike 2                                          5.0 s           0.0 s       HPA
+
+  PEAK REPLICAS REACHED DURING SPIKE
+    Spike 1 peak replicas                                5               4     GRU ✓
+    Spike 2 peak replicas                                5               4     GRU ✓
+
+  SCALE-DOWN LAG  (seconds from drop start → first replica released)
+  [HPA stabilizationWindowSeconds=300 holds replicas for up to 5 min]
+    Drop 1                                          10.0 s             N/A         ?
+    Drop 2                                          10.0 s             N/A         ?
+
+  OVER-PROVISIONING  (excess replica-seconds above minimum)
+  [wasted compute cost during recovery/cooldown windows]
+    Recovery window (t=95–160 s)                    60 r·s         195 r·s     GRU ✓
+    Cooldown window (t=225–260 s)                   60 r·s         105 r·s     GRU ✓
+    TOTAL excess replica-seconds                   120 r·s         300 r·s     GRU ✓
+
+  UNDER-PROVISIONING  (seconds where CPU/pod > 800 m)
+  [CPU throttling risk / SLA-violation proxy — STRONGEST ARGUMENT]
+  [Pod CPU limit = 1000 m; threshold = 800 m = 80% of limit]
+    Spike 1                                          0.0 s           0.0 s       HPA
+    Spike 2                                          0.0 s           0.0 s       HPA
+    TOTAL under-provisioned seconds                  0.0 s           0.0 s       HPA
+
+  PEAK CPU PER POD DURING SPIKE 1
+    Peak CPU / pod                               386 ±11 m        404 ±4 m     GRU ✓
+
+====================================================================
