@@ -1,4 +1,4 @@
 GRU Model Evaluation
-RMSE: 19.6071
-MAE : 9.0571
+RMSE: 19.6142
+MAE : 9.1688
 R2  : 0.9147
